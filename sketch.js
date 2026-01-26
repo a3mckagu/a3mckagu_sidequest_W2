@@ -48,7 +48,7 @@ let platforms = [];
 
 function setup() {
   createCanvas(670, 670); // CHANGED: Square canvas 670x670
-  bgImage = loadImage("assets/bg.png"); // CHANGED: Load background image
+  bgImage = loadImage("assets/bg.PNG"); // CHANGED: Load background image
   fg1Image = loadImage("assets/fg1.png"); // CHANGED: Load bottom left foreground
   fg2Image = loadImage("assets/fg2.png"); // CHANGED: Load bottom right foreground
 
