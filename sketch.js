@@ -1,3 +1,10 @@
+// Background image
+let bgImage; // CHANGED: Declare background image variable
+
+// Foreground images (overlay on top)
+let fg1Image; // CHANGED: Bottom left foreground
+let fg2Image; // CHANGED: Bottom right foreground
+
 // Y-position of the floor (ground level)
 let floorY3;
 
@@ -25,7 +32,7 @@ let blob3 = {
   accel: 0.55, // Horizontal acceleration
   maxRun: 4.0, // Maximum horizontal speed
   gravity: 0.65, // Downward force
-  jumpV: -11.0, // Initial jump impulse
+  jumpV: -13.75, // Initial jump impulse - CHANGED: Increased by 1.125x (was -11.0)
 
   // State
   onGround: false, // True when standing on a platform
@@ -40,7 +47,10 @@ let blob3 = {
 let platforms = [];
 
 function setup() {
-  createCanvas(640, 360);
+  createCanvas(670, 670); // CHANGED: Square canvas 670x670
+  bgImage = loadImage("assets/bg.png"); // CHANGED: Load background image
+  fg1Image = loadImage("assets/fg1.png"); // CHANGED: Load bottom left foreground
+  fg2Image = loadImage("assets/fg2.png"); // CHANGED: Load bottom right foreground
 
   // Define the floor height
   floorY3 = height - 36;
@@ -52,10 +62,10 @@ function setup() {
   // Create platforms (floor + steps)
   platforms = [
     { x: 0, y: floorY3, w: width, h: height - floorY3 }, // floor
-    { x: 120, y: floorY3 - 70, w: 120, h: 12 }, // low step
-    { x: 300, y: floorY3 - 120, w: 90, h: 12 }, // mid step
-    { x: 440, y: floorY3 - 180, w: 130, h: 12 }, // high step
-    { x: 520, y: floorY3 - 70, w: 90, h: 12 }, // return ramp
+    { x: 120, y: floorY3 - 130, w: 120, h: 12 }, // low step - CHANGED: Raised 50px
+    { x: 272, y: floorY3 - 230, w: 90, h: 12 }, // mid step - CHANGED: Raised 50px
+    { x: 390, y: floorY3 - 130, w: 130, h: 12 }, // high step - CHANGED: Raised 50px
+    { x: 450, y: floorY3 - 300, w: 90, h: 12 }, // return ramp - CHANGED: Raised 50px
   ];
 
   // Start the blob resting on the floor
@@ -63,10 +73,33 @@ function setup() {
 }
 
 function draw() {
-  background(240);
+  // CHANGED: Draw background image scaled to fill canvas
+  if (bgImage) {
+    const imgAspect = bgImage.width / bgImage.height; // CHANGED: Calculate image aspect ratio
+    const canvasAspect = width / height; // CHANGED: Calculate canvas aspect ratio
+    let imgWidth, imgHeight;
+
+    if (imgAspect > canvasAspect) {
+      // Image is wider than canvas, fit to height
+      imgHeight = height; // CHANGED: Fill height
+      imgWidth = height * imgAspect; // CHANGED: Scale width proportionally
+    } else {
+      // Image is taller than canvas, fit to width
+      imgWidth = width; // CHANGED: Fill width
+      imgHeight = width / imgAspect; // CHANGED: Scale height proportionally
+    }
+
+    image(
+      bgImage,
+      (width - imgWidth) / 2,
+      (height - imgHeight) / 2,
+      imgWidth,
+      imgHeight,
+    ); // CHANGED: Draw centered image
+  }
 
   // --- Draw all platforms ---
-  fill(200);
+  fill(64, 43, 60); //I adjusted the fill myself
   for (const p of platforms) {
     rect(p.x, p.y, p.w, p.h);
   }
@@ -140,8 +173,43 @@ function draw() {
   drawBlobCircle(blob3);
 
   // --- HUD ---
-  fill(0);
-  text("Move: A/D or ←/→  •  Jump: Space/W/↑  •  Land on platforms", 10, 18);
+  fill(255); // I adjusted the HUD fill for readability
+  textFont("Indie Flower"); // CHANGED: Reset to default font for normal HUD text
+  textSize(15); // CHANGED: Reset to default size
+  textAlign(CENTER); // CHANGED: Center align for controls text below indie flower
+  text(
+    "Move: A/D or ←/→  •  Jump: Space/W/↑  •  Land on Platforms  •  No Prize",
+    width / 2,
+    647,
+  ); // CHANGED: Moved below indie flower text
+
+  // CHANGED: Narrative text - centered, larger, custom font
+  textFont("Indie Flower"); // CHANGED: Set to Indie Flower font
+  textSize(28); // CHANGED: Increased 1.25x from 14
+  textAlign(CENTER, TOP); // CHANGED: Center horizontally, align to top for consistent padding
+  fill(255); // CHANGED: White color
+  text(
+    "Retreat behind the trees... or confront your fear and reach the moon",
+    width / 10, // CHANGED: Centered on X-axis (middle of canvas)
+    185, // CHANGED: 20px top padding
+    550, // CHANGED: Max width to constrain text within canvas with margins
+  );
+
+  // CHANGED: Draw foreground images as topmost layer (z-index effect)
+  const fgHeight = 200; // CHANGED: Foreground height 200px
+  const fgYPos = height - 35 - fgHeight; // CHANGED: 20px from bottom
+
+  // CHANGED: Draw fg1 in bottom left corner
+  if (fg1Image) {
+    const fg1Width = fgHeight * (fg1Image.width / fg1Image.height); // CHANGED: Maintain aspect ratio
+    image(fg1Image, -22, fgYPos, fg1Width, fgHeight); // CHANGED: 20px from left
+  }
+
+  // CHANGED: Draw fg2 in bottom right corner
+  if (fg2Image) {
+    const fg2Width = fgHeight * (fg2Image.width / fg2Image.height); // CHANGED: Maintain aspect ratio
+    image(fg2Image, width + 10 - fg2Width, fgYPos, fg2Width, fgHeight); // CHANGED: 20px from right
+  }
 }
 
 // Axis-Aligned Bounding Box (AABB) overlap test
@@ -154,25 +222,43 @@ function overlap(a, b) {
 
 // Draws the blob using Perlin noise for a soft, breathing effect
 function drawBlobCircle(b) {
-  fill(20, 120, 255);
-  beginShape();
+  stroke(0); // CHANGED: Black stroke for scribble effect
+  strokeWeight(2); // CHANGED: Thicker line for visibility
+  noFill(); // CHANGED: No fill - just outline
 
-  for (let i = 0; i < b.points; i++) {
-    const a = (i / b.points) * TAU;
+  // CHANGED: Calculate spiral count based on distance from top (lower y = closer to top = more spirals)
+  const distanceFromTop = floorY3 - b.y; // CHANGED: Distance blob moved up from floor
+  const spiralCount = 15 + Math.floor(distanceFromTop / 50) * 6; // CHANGED: +10 spirals per 50px toward top
 
-    // Noise-based radius offset
-    const n = noise(
-      cos(a) * b.wobbleFreq + 100,
-      sin(a) * b.wobbleFreq + 100,
-      b.t,
-    );
+  // Draw multiple spiral loops for noisy, nervous effect
+  for (let spiral = 0; spiral < spiralCount; spiral++) {
+    // CHANGED: Dynamic spiral count based on blob's Y position
+    beginShape();
 
-    const r = b.r + map(n, 0, 1, -b.wobble, b.wobble);
+    for (let i = 0; i < b.points; i++) {
+      const a = (i / b.points) * TAU;
 
-    vertex(b.x + cos(a) * r, b.y + sin(a) * r);
+      // Noise-based radius offset with added spiral noise
+      const n = noise(
+        cos(a) * b.wobbleFreq + 100,
+        sin(a) * b.wobbleFreq + 100,
+        b.t + spiral * 0.3, // CHANGED: Different noise offset per spiral layer
+      );
+
+      // Extra random noise for jittery, nervous feeling
+      const jitter = noise(b.t * 2 + spiral, a * 3) * 6; // CHANGED: High-freq jitter for tension
+
+      // Spiral inward slightly based on spiral layer
+      const spiralShrink = (spiral / 4) * 8; // CHANGED: Creates inward spiral effect - Andreea edited the depthness of the spiral
+
+      // Combine base radius, wobble, jitter, and spiral shrink
+      const r = b.r + map(n, 0, 1, -b.wobble, b.wobble) + jitter - spiralShrink; // CHANGED: Layered radius calculation
+
+      vertex(b.x + cos(a) * r, b.y + sin(a) * r);
+    }
+
+    endShape(CLOSE);
   }
-
-  endShape(CLOSE);
 }
 
 // Jump input (only allowed when grounded)
