@@ -73,6 +73,7 @@ function setup() {
 }
 
 function draw() {
+  clear(); //clear previous work
   // CHANGED: Draw background image scaled to fill canvas
   if (bgImage) {
     const imgAspect = bgImage.width / bgImage.height; // CHANGED: Calculate image aspect ratio
