@@ -73,7 +73,6 @@ function setup() {
 }
 
 function draw() {
-  clear(); //clear previous work
   // CHANGED: Draw background image scaled to fill canvas
   if (bgImage) {
     const imgAspect = bgImage.width / bgImage.height; // CHANGED: Calculate image aspect ratio
@@ -280,3 +279,4 @@ function keyPressed() {
    • “Ice” feel → frictionGround = 0.95
    • “Sand” feel → frictionGround = 0.80
 */
+
